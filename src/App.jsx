@@ -4,12 +4,14 @@ import "./App.css";
 
 function App() {
   const [image, setImage] = useState(null);
-  const [nutrition, setNutrition] = useState(null); // store AI results
+  const [nutrition, setNutrition] = useState(null);
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
 
   // 📌 Call backend for image analysis
   const processImage = async (file) => {
-    console.log("Sending to backend:", file.name);
+    setLoading(true);
+    setNutrition(null);
 
     try {
       const formData = new FormData();
@@ -23,11 +25,10 @@ function App() {
       const data = await response.json();
 
       if (data.result === "Imagen no contiene comida") {
-        setNutrition(null);
         Swal.fire("Info 🍽️", "Imagen no contiene comida", "info");
       } else {
         try {
-          const parsed = JSON.parse(data.result); // parse JSON from backend
+          const parsed = JSON.parse(data.result);
           setNutrition(parsed);
         } catch {
           Swal.fire("Error 😢", "Invalid AI response", "error");
@@ -35,6 +36,8 @@ function App() {
       }
     } catch (error) {
       Swal.fire("Error 😢", "Something went wrong", "error");
+    } finally {
+      setLoading(false);
     }
 
     if (fileInputRef.current) {
@@ -52,108 +55,180 @@ function App() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "2rem" }}>
-      <h1>Upload a Picture 📸</h1>
+    <div className="app-container">
+      <h1 className="title">🍽️ Food Analyzer AI</h1>
 
-      {/* File input */}
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleImageUpload}
-        ref={fileInputRef}
-      />
+      {/* Upload input */}
+      <div className="upload-box">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          ref={fileInputRef}
+          className="file-input"
+        />
+      </div>
 
-      {/* Preview */}
-      {image && (
-        <div style={{ marginTop: "1rem" }}>
-          <h3>Preview:</h3>
-          <img
-            src={image}
-            alt="Uploaded Preview"
-            style={{ maxWidth: "300px", borderRadius: "8px" }}
-          />
+      {/* Loader */}
+      {loading && (
+        <div className="loader-container">
+          <div className="loader"></div>
+          <p>Analyzing image...</p>
         </div>
       )}
 
-      {/* Nutrition Table */}
-      {nutrition && (
-        <div style={{ marginTop: "2rem" }}>
-          <h2>Nutrition Facts 🍏</h2>
-          <table
-            style={{
-              margin: "0 auto",
-              borderCollapse: "collapse",
-              width: "60%",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-              borderRadius: "8px",
-              overflow: "hidden",
-            }}
-          >
-            <thead>
-              <tr style={{ backgroundColor: "#4CAF50", color: "white" }}>
-                <th style={{ padding: "12px", textAlign: "left" }}>Nutrient</th>
-                <th style={{ padding: "12px", textAlign: "center" }}>Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{ padding: "12px", borderBottom: "1px solid #ddd" }}>
-                  Calories
-                </td>
-                <td style={{ padding: "12px", textAlign: "center" }}>
-                  {nutrition.Calories}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "12px", borderBottom: "1px solid #ddd" }}>
-                  Protein
-                </td>
-                <td style={{ padding: "12px", textAlign: "center" }}>
-                  {nutrition.Protein}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "12px", borderBottom: "1px solid #ddd" }}>
-                  Fat
-                </td>
-                <td style={{ padding: "12px", textAlign: "center" }}>
-                  {nutrition.Fat}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: "12px", borderBottom: "1px solid #ddd" }}>
-                  Carbohydrates
-                </td>
-                <td style={{ padding: "12px", textAlign: "center" }}>
-                  {nutrition.Carbohydrates}
-                </td>
-              </tr>
-              <tr>
-                <td
-                  style={{
-                    padding: "12px",
-                    fontWeight: "bold",
-                    borderBottom: "1px solid #ddd",
-                  }}
-                >
-                  Healthiness
-                </td>
-                <td
-                  style={{
-                    padding: "12px",
-                    textAlign: "center",
-                    fontWeight: "bold",
-                    color:
-                      nutrition.Healthiness === "Healthy" ? "green" : "red",
-                  }}
-                >
-                  {nutrition.Healthiness}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      {/* Two-column layout */}
+      {!loading && (image || nutrition) && (
+        <div className="results-container">
+          {/* Left: Image */}
+          {image && (
+            <div className="image-card">
+              <h3>Preview</h3>
+              <img src={image} alt="Preview" className="preview-img" />
+            </div>
+          )}
+
+          {/* Right: Table */}
+          {nutrition && (
+            <div className="table-card">
+              <h2>Nutrition Facts 🍏</h2>
+              <table className="nutrition-table">
+                <thead>
+                  <tr>
+                    <th>Nutrient</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Calories</td>
+                    <td>{nutrition.Calories}</td>
+                  </tr>
+                  <tr>
+                    <td>Protein</td>
+                    <td>{nutrition.Protein}</td>
+                  </tr>
+                  <tr>
+                    <td>Fat</td>
+                    <td>{nutrition.Fat}</td>
+                  </tr>
+                  <tr>
+                    <td>Carbohydrates</td>
+                    <td>{nutrition.Carbohydrates}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ fontWeight: "bold" }}>Healthiness</td>
+                    <td
+                      style={{
+                        fontWeight: "bold",
+                        color:
+                          nutrition.Healthiness === "Healthy"
+                            ? "green"
+                            : "red",
+                      }}
+                    >
+                      {nutrition.Healthiness}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
+
+      {/* Spinner Animation CSS */}
+      <style>
+        {`
+          .app-container {
+            text-align: center;
+            padding: 2rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f9f9f9;
+            min-height: 100vh;
+          }
+
+          .title {
+            color: #333;
+            margin-bottom: 1rem;
+          }
+
+          .upload-box {
+            margin-bottom: 2rem;
+          }
+
+          .file-input {
+            padding: 10px;
+            border: 2px dashed #4CAF50;
+            border-radius: 8px;
+            cursor: pointer;
+            background: white;
+          }
+
+          .loader-container {
+            margin-top: 2rem;
+          }
+
+          .loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #4CAF50;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            margin: auto;
+            animation: spin 1s linear infinite;
+          }
+
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+
+          .results-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+          }
+
+          .image-card, .table-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 300px;
+          }
+
+          .preview-img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-top: 1rem;
+          }
+
+          .nutrition-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+          }
+
+          .nutrition-table th {
+            background: #4CAF50;
+            color: white;
+            padding: 12px;
+          }
+
+          .nutrition-table td {
+            border-bottom: 1px solid #ddd;
+            padding: 12px;
+          }
+
+          .nutrition-table tr:hover {
+            background: #f1f1f1;
+          }
+        `}
+      </style>
     </div>
   );
 }
