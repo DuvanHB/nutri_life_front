@@ -16,6 +16,7 @@ function App() {
   const [canRegister, setCanRegister] = useState(false);
 
   const [settings, setSettings] = useState({
+    gender: "Male",
     age: "",
     height: "",
     weight: "",
@@ -124,7 +125,7 @@ function App() {
       )}
 
       {activeTab === "settings" && (
-        <Settings settings={settings} handleSettingsChange={handleSettingsChange} />
+        <Settings settings={settings} setSettings={setSettings} handleSettingsChange={handleSettingsChange} />
       )}
     </div>
   );

@@ -1,8 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-function Settings({ settings, handleSettingsChange }) {
+function Settings({ settings, handleSettingsChange, setSettings  }) {
   const [nutritionPlan, setNutritionPlan] = useState(null);
   const [loading, setLoading] = useState(false);
+  // 📌 Load saved nutrition from backend on mount
+  useEffect(() => {
+    const fetchNutrition = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/get-nutrition");
+        const data = await res.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          const latest = data[data.length - 1]; // get last saved record
+
+          // Fill form values
+          setSettings({
+            gender: latest.gender,
+            age: latest.age,
+            height: latest.height,
+            weight: latest.weight,
+            trainsPerWeek: latest.trainsPerWeek,
+            activity: latest.activity,
+            goal: latest.goal,
+          });
+
+          // Fill calculated nutrition
+          setNutritionPlan({
+            calories: latest.calories,
+            protein: latest.protein,
+            fat: latest.fat,
+            carbs: latest.carbs,
+          });
+        }
+      } catch (err) {
+        console.error("❌ Error fetching nutrition:", err);
+      }
+    };
+
+    fetchNutrition();
+  }, [setSettings]);
 
   // Call backend to calculate nutrition
   const handleSave = async () => {
