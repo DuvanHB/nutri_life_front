@@ -1,10 +1,36 @@
+import { useEffect, useState } from "react";
 import FoodTable from "../components/FoodTable";
 
 function DailyLog({ registeredFoods }) {
+  const [nutritionPlan, setNutritionPlan] = useState(null);
+
+  // Fetch latest nutrition plan from backend on mount
+  useEffect(() => {
+    const fetchNutrition = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/get-nutrition");
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const latest = data[data.length - 1];
+          setNutritionPlan({
+            calories: latest.calories,
+            protein: latest.protein,
+            fat: latest.fat,
+            carbs: latest.carbs,
+          });
+        }
+      } catch (err) {
+        console.error("❌ Error fetching nutrition plan:", err);
+      }
+    };
+
+    fetchNutrition();
+  }, []);
+
   return (
     <div className="registered">
       <h2>Comidas Registradas 📋</h2>
-      <FoodTable foods={registeredFoods} />
+      <FoodTable foods={registeredFoods} nutritionPlan={nutritionPlan} />
     </div>
   );
 }

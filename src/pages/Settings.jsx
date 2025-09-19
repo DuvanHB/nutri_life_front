@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
-function Settings({ settings, handleSettingsChange, setSettings  }) {
+function Settings({ settings, handleSettingsChange, setSettings }) {
   const [nutritionPlan, setNutritionPlan] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [savedPlan, setSavedPlan] = useState(null); // store last saved plan
+  const [calculated, setCalculated] = useState(false);
+  const [saved, setSaved] = useState(false);
+
   // 📌 Load saved nutrition from backend on mount
   useEffect(() => {
     const fetchNutrition = async () => {
@@ -13,7 +18,6 @@ function Settings({ settings, handleSettingsChange, setSettings  }) {
         if (Array.isArray(data) && data.length > 0) {
           const latest = data[data.length - 1]; // get last saved record
 
-          // Fill form values
           setSettings({
             gender: latest.gender,
             age: latest.age,
@@ -24,21 +28,36 @@ function Settings({ settings, handleSettingsChange, setSettings  }) {
             goal: latest.goal,
           });
 
-          // Fill calculated nutrition
           setNutritionPlan({
             calories: latest.calories,
             protein: latest.protein,
             fat: latest.fat,
             carbs: latest.carbs,
           });
+
+          setSavedPlan(latest); // store original saved
+          setSaved(true); // nothing to do after fetching
         }
       } catch (err) {
-        console.error("❌ Error fetching nutrition:", err);
+        Swal.fire("❌ Error fetching nutrition:" + err, "error");
       }
     };
 
     fetchNutrition();
   }, [setSettings]);
+
+  // Detect changes between form and saved values
+  const hasChanges =
+    savedPlan &&
+    (
+      savedPlan.gender !== settings.gender ||
+      savedPlan.age !== Number(settings.age) ||
+      savedPlan.height !== Number(settings.height) ||
+      savedPlan.weight !== Number(settings.weight) ||
+      savedPlan.trainsPerWeek !== Number(settings.trainsPerWeek) ||
+      savedPlan.activity !== settings.activity ||
+      savedPlan.goal !== settings.goal
+    );
 
   // Call backend to calculate nutrition
   const handleSave = async () => {
@@ -52,8 +71,10 @@ function Settings({ settings, handleSettingsChange, setSettings  }) {
 
       const data = await res.json();
       setNutritionPlan(data);
+      setCalculated(true);
+      setSaved(false); // not saved yet
     } catch (err) {
-      console.error("Error al calcular nutrición:", err);
+        Swal.fire("❌ Error al calcular nutrición:" + err, "error");
     }
     setLoading(false);
   };
@@ -61,7 +82,7 @@ function Settings({ settings, handleSettingsChange, setSettings  }) {
   // Save the calculated plan into MongoDB
   const handleSaveToDB = async () => {
     if (!nutritionPlan) {
-      alert("First calculate the plan, then click Save.");
+        Swal.fire("First calculate the plan, then click Save.", "error");
       return;
     }
 
@@ -73,12 +94,10 @@ function Settings({ settings, handleSettingsChange, setSettings  }) {
       trainsPerWeek: Number(settings.trainsPerWeek || 0),
       activity: settings.activity,
       goal: settings.goal,
-      // results from calculate-nutrition
       calories: nutritionPlan.calories,
       protein: nutritionPlan.protein,
       fat: nutritionPlan.fat,
       carbs: nutritionPlan.carbs,
-      // optional
       note: "",
       date: new Date().toISOString(),
     };
@@ -92,16 +111,16 @@ function Settings({ settings, handleSettingsChange, setSettings  }) {
 
       const data = await res.json();
       if (!res.ok) {
-        console.error("Save error:", data);
-        alert("Error saving plan: " + (data.error || "unknown"));
+        Swal.fire("Error saving plan: " + (data.error || "unknown"), "error");
         return;
       }
+      Swal.fire("Plan saved ✅", "success");
 
-      console.log("Saved:", data.data);
-      alert("Plan saved ✅");
+      setSavedPlan(payload); // update reference
+      setSaved(true);
+      setCalculated(false);
     } catch (err) {
-      console.error("Save failed:", err);
-      alert("Save failed");
+      Swal.fire("Save failed", "error");
     }
   };
 
@@ -183,15 +202,18 @@ function Settings({ settings, handleSettingsChange, setSettings  }) {
         </label>
       </form>
 
-      {/* First calculate */}
-      <button className="calculate" onClick={handleSave} disabled={loading}>
-        {loading ? "Calculando..." : "Calcular"}
-      </button>
+      {/* Show only one button at a time */}
+      {!calculated && hasChanges && (
+        <button className="calculate" onClick={handleSave} disabled={loading}>
+          {loading ? "Calculando..." : "Calcular"}
+        </button>
+      )}
 
-      {/* Then save to DB */}
-      <button className="save-db"  onClick={handleSaveToDB} disabled={!nutritionPlan}>
-        Guardar
-      </button>
+      {calculated && !saved && (
+        <button className="save-db" onClick={handleSaveToDB}>
+          Guardar
+        </button>
+      )}
 
       {nutritionPlan && (
         <div className="nutrition-result">
