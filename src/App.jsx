@@ -3,12 +3,13 @@ import Swal from "sweetalert2";
 import "./App.css";
 
 function App() {
-  const [activeTab, setActiveTab] = useState("analyzer"); // 👈 default tab
+  const [activeTab, setActiveTab] = useState("dailyLog"); // 👈 default tab
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [registeredFoods, setRegisteredFoods] = useState([]);
+  const [canRegister, setCanRegister] = useState(false); // 👈 controls Register button
 
   // ✅ Settings state
   const [settings, setSettings] = useState({
@@ -25,6 +26,7 @@ function App() {
     setImage(file);
     setPreview(URL.createObjectURL(file));
     setResult(null);
+    setCanRegister(false);
 
     const formData = new FormData();
     formData.append("image", file);
@@ -53,21 +55,7 @@ function App() {
       }
 
       setResult(parsed);
-
-      // Confirm popup
-      Swal.fire({
-        title: "Registrar comida",
-        text: "¿Quieres registrar esta comida?",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Si",
-        cancelButtonText: "No",
-      }).then((res) => {
-        if (res.isConfirmed) {
-          setRegisteredFoods((prev) => [...prev, parsed]);
-          Swal.fire("Registrado ✅", "La comida fue registrada", "success");
-        }
-      });
+      setCanRegister(true); // show register button
     } catch (err) {
       setLoading(false);
       Swal.fire("Error", "No se pudo procesar la imagen", "error");
@@ -84,6 +72,14 @@ function App() {
     setSettings((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleRegisterFood = () => {
+    if (result) {
+      setRegisteredFoods((prev) => [...prev, result]);
+      setCanRegister(false); // hide button after registering
+      Swal.fire("Registrado ✅", "La comida fue registrada", "success");
+    }
+  };
+
   return (
     <div className="container">
       <h1 className="title">Food Analyzer 🍽️</h1>
@@ -91,10 +87,16 @@ function App() {
       {/* Tabs Navigation */}
       <div className="tabs">
         <button
+          className={activeTab === "dailyLog" ? "active" : ""}
+          onClick={() => setActiveTab("dailyLog")}
+        >
+          Daily Log 📋
+        </button>
+        <button
           className={activeTab === "analyzer" ? "active" : ""}
           onClick={() => setActiveTab("analyzer")}
         >
-          Food Analyzer
+          Food Analyzer 🍔
         </button>
         <button
           className={activeTab === "settings" ? "active" : ""}
@@ -103,6 +105,39 @@ function App() {
           Settings ⚙️
         </button>
       </div>
+
+      {/* Daily Log Tab */}
+      {activeTab === "dailyLog" && (
+        <div className="registered">
+          <h2>Comidas Registradas 📋</h2>
+          {registeredFoods.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>Calorías</th>
+                  <th>Proteína</th>
+                  <th>Grasas</th>
+                  <th>Carbohidratos</th>
+                  <th>Saludable</th>
+                </tr>
+              </thead>
+              <tbody>
+                {registeredFoods.map((food, i) => (
+                  <tr key={i}>
+                    <td>{food.Calories}</td>
+                    <td>{food.Protein}</td>
+                    <td>{food.Fat}</td>
+                    <td>{food.Carbohydrates}</td>
+                    <td>{food.Healthiness}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>No hay comidas registradas aún.</p>
+          )}
+        </div>
+      )}
 
       {/* Food Analyzer Tab */}
       {activeTab === "analyzer" && (
@@ -153,37 +188,14 @@ function App() {
                     </tr>
                   </tbody>
                 </table>
+
+                {/* Register Button */}
+                {canRegister && (
+                  <button onClick={handleRegisterFood}>Registrar ✅</button>
+                )}
               </div>
             )}
           </div>
-
-          {registeredFoods.length > 0 && (
-            <div className="registered">
-              <h2>Comidas Registradas 📋</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Calorías</th>
-                    <th>Proteína</th>
-                    <th>Grasas</th>
-                    <th>Carbohidratos</th>
-                    <th>Saludable</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {registeredFoods.map((food, i) => (
-                    <tr key={i}>
-                      <td>{food.Calories}</td>
-                      <td>{food.Protein}</td>
-                      <td>{food.Fat}</td>
-                      <td>{food.Carbohydrates}</td>
-                      <td>{food.Healthiness}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
         </>
       )}
 
