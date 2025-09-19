@@ -1,8 +1,41 @@
+import { useState } from "react";
+
 function Settings({ settings, handleSettingsChange }) {
+  const [nutritionPlan, setNutritionPlan] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:5000/calculate-nutrition", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settings),
+      });
+
+      const data = await res.json();
+      setNutritionPlan(data);
+    } catch (err) {
+      console.error("Error al calcular nutrición:", err);
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="settings">
       <h2>Configuración ⚙️</h2>
       <form>
+        <label>
+          Sexo:
+          <select
+            name="gender"
+            value={settings.gender}
+            onChange={handleSettingsChange}
+          >
+            <option value="Male">Hombre</option>
+            <option value="Female">Mujer</option>
+          </select>
+        </label>
         <label>
           Edad:
           <input
@@ -65,7 +98,22 @@ function Settings({ settings, handleSettingsChange }) {
           </select>
         </label>
       </form>
-      <pre>{JSON.stringify(settings, null, 2)}</pre>
+
+      <button onClick={handleSave} disabled={loading}>
+        {loading ? "Calculando..." : "Guardar"}
+      </button>
+
+      {nutritionPlan && (
+        <div className="nutrition-result">
+          <h3>Tu plan nutricional 🎯</h3>
+          <ul>
+            <li>Calorías: {nutritionPlan.calories}</li>
+            <li>Proteína: {nutritionPlan.protein} g</li>
+            <li>Grasas: {nutritionPlan.fat} g</li>
+            <li>Carbohidratos: {nutritionPlan.carbs} g</li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

@@ -170,6 +170,50 @@ tr:nth-child(even) {
   font-weight: bold;
 }
 
+.nutrition-result {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #f9f9f9;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.nutrition-result h3 {
+  margin-bottom: 15px;
+  color: #333;
+  text-align: center;
+}
+
+.nutrition-result ul {
+  list-style: none;
+  padding: 0;
+}
+
+.nutrition-result li {
+  font-size: 18px;
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.nutrition-result li:nth-child(1) {
+  background: #ffe0e0; /* Calories - red */
+}
+
+.nutrition-result li:nth-child(2) {
+  background: #d4f4d2; /* Protein - green */
+}
+
+.nutrition-result li:nth-child(3) {
+  background: #fff2cc; /* Fat - yellow */
+}
+
+.nutrition-result li:nth-child(4) {
+  background: #d9ecff; /* Carbs - blue */
+}
+
+
 /* Animation */
 @keyframes fadeIn {
   from {
