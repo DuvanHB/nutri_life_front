@@ -1,151 +1,183 @@
-/* General */
+/* Global Styles */
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #f9f9f9, #eaeefc);
   margin: 0;
   padding: 0;
   color: #333;
 }
 
+/* Container */
 .container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 2rem;
-  text-align: center;
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .title {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  color: #2c3e50;
+  text-align: center;
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+  color: #3a3a7c;
 }
 
-/* Upload button */
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.tabs button {
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: none;
+  background: #f0f0f0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tabs button.active {
+  background: #3a3a7c;
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(58, 58, 124, 0.4);
+}
+
+.tabs button:hover {
+  background: #dcdcdc;
+}
+
+/* Upload */
 input[type="file"] {
   display: none;
 }
 
-input[type="file"] + label {
-  background: #3498db;
+label[for="fileUpload"] {
+  display: inline-block;
+  padding: 12px 18px;
+  background: #3a3a7c;
   color: white;
-  padding: 10px 18px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: 0.3s;
-  font-weight: 500;
+  font-weight: 600;
+  transition: background 0.3s;
 }
 
-input[type="file"] + label:hover {
-  background: #2980b9;
+label[for="fileUpload"]:hover {
+  background: #2a2a5c;
 }
 
-/* Layout */
+/* Content layout */
 .content {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 2rem;
-  gap: 2rem;
+  justify-content: space-between;
+  gap: 30px;
+  margin-top: 25px;
 }
 
 .preview,
 .result {
-  background: white;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   flex: 1;
-  min-width: 280px;
-}
-
-.preview h3,
-.result h3 {
-  margin-bottom: 1rem;
-  color: #2c3e50;
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .preview img {
   max-width: 100%;
   border-radius: 12px;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
 }
 
-/* Result Table */
-.result table {
+/* Tables */
+table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10px;
 }
 
-.result td {
+td,
+th {
+  border: 1px solid #ddd;
   padding: 10px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-}
-
-.result td:first-child {
-  font-weight: bold;
-  color: #34495e;
-}
-
-/* Registered foods */
-.registered {
-  margin-top: 2.5rem;
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  text-align: left;
-}
-
-.registered h2 {
-  margin-bottom: 1rem;
-  color: #27ae60;
-}
-
-.registered table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.registered th,
-.registered td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
   text-align: center;
 }
 
-.registered th {
-  background: #27ae60;
+th {
+  background: #3a3a7c;
   color: white;
+}
+
+tr:nth-child(even) {
+  background: #f7f7f7;
+}
+
+/* Registered Foods */
+.registered {
+  margin-top: 40px;
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Settings Form */
+.settings form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px 20px;
+  margin-top: 20px;
+}
+
+.settings label {
+  display: flex;
+  flex-direction: column;
   font-weight: 600;
+  color: #444;
 }
 
-/* Loading spinner */
+.settings input,
+.settings select {
+  padding: 10px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: border 0.3s;
+}
+
+.settings input:focus,
+.settings select:focus {
+  outline: none;
+  border-color: #3a3a7c;
+}
+
+/* Loading */
 .loading {
-  margin-top: 1rem;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #3a3a7c;
+  margin-top: 15px;
   font-weight: bold;
-  color: #3498db;
 }
 
-.loading::after {
-  content: " ⏳";
-  animation: spin 1s linear infinite;
-  display: inline-block;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .content {
-    flex-direction: column;
-    align-items: center;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
