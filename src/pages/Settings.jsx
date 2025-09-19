@@ -184,13 +184,13 @@ function Settings({ settings, handleSettingsChange, setSettings  }) {
       </form>
 
       {/* First calculate */}
-      <button onClick={handleSave} disabled={loading}>
+      <button className="calculate" onClick={handleSave} disabled={loading}>
         {loading ? "Calculando..." : "Calcular"}
       </button>
 
       {/* Then save to DB */}
-      <button onClick={handleSaveToDB} disabled={!nutritionPlan}>
-        Guardar en DB
+      <button className="save-db"  onClick={handleSaveToDB} disabled={!nutritionPlan}>
+        Guardar
       </button>
 
       {nutritionPlan && (

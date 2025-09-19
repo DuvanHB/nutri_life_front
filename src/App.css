@@ -213,6 +213,51 @@ tr:nth-child(even) {
   background: #d9ecff; /* Carbs - blue */
 }
 
+/* Action Buttons */
+button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 10px 5px;
+}
+
+/* Primary - Calcular */
+button.calculate {
+  background: #3a3a7c;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(58, 58, 124, 0.3);
+}
+
+button.calculate:hover {
+  background: #2a2a5c;
+  transform: scale(1.05);
+}
+
+/* Secondary - Guardar en DB */
+button.save-db {
+  background: #4caf50;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+button.save-db:hover {
+  background: #388e3c;
+  transform: scale(1.05);
+}
+
+/* Disabled state */
+button:disabled {
+  background: #ccc !important;
+  color: #666 !important;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 
 /* Animation */
 @keyframes fadeIn {
