@@ -1,78 +1,48 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Swal from "sweetalert2";
 import "./App.css";
 
 function App() {
-  const [image, setImage] = useState(null);
-  const fileInputRef = useRef(null); // ref for input
+  const [message, setMessage] = useState("");
 
-  // Call backend after upload
-  const processImage = async (file) => {
-    console.log("Sending to backend:", file.name);
+  const sendMessage = async () => {
+    if (!message.trim()) {
+      return Swal.fire("Error", "Please enter a message", "error");
+    }
 
     try {
-      const response = await fetch("http://localhost:5000/process-image", {
+      const response = await fetch("http://localhost:5000/ask-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileName: file.name }),
+        body: JSON.stringify({ message }),
       });
 
       const data = await response.json();
-      console.log("Response from backend:", data);
 
-      // Show SweetAlert2 popup
-      await Swal.fire({
-        title: "Success 🎉",
-        text: data.message,
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      if (data.error) {
+        Swal.fire("Error", data.error, "error");
+      } else {
+        Swal.fire("AI Reply 🤖", data.reply, "success");
+      }
     } catch (error) {
-      await Swal.fire({
-        title: "Error 😢",
-        text: "Something went wrong",
-        icon: "error",
-      });
-    }
-
-    // reset input so user can re-upload (even the same file)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  // Handle file upload
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setImage(URL.createObjectURL(file)); // preview
-      processImage(file); // call backend + SweetAlert
+      Swal.fire("Error", "Could not connect to backend", "error");
     }
   };
 
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
-      <h1>Upload a Picture 📸</h1>
+      <h1>Ask AI 💬</h1>
 
-      {/* File input with ref */}
       <input
-        type="file"
-        accept="image/*"
-        onChange={handleImageUpload}
-        ref={fileInputRef}
+        type="text"
+        placeholder="Type your question..."
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        style={{ padding: "0.5rem", width: "250px", marginRight: "10px" }}
       />
-
-      {/* Preview */}
-      {image && (
-        <div style={{ marginTop: "1rem" }}>
-          <h3>Preview:</h3>
-          <img
-            src={image}
-            alt="Uploaded Preview"
-            style={{ maxWidth: "300px", borderRadius: "8px" }}
-          />
-        </div>
-      )}
+      <button onClick={sendMessage} style={{ padding: "0.5rem 1rem" }}>
+        Send
+      </button>
     </div>
   );
 }
