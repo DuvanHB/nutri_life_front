@@ -4,6 +4,7 @@ function Settings({ settings, handleSettingsChange }) {
   const [nutritionPlan, setNutritionPlan] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Call backend to calculate nutrition
   const handleSave = async () => {
     setLoading(true);
     try {
@@ -19,6 +20,53 @@ function Settings({ settings, handleSettingsChange }) {
       console.error("Error al calcular nutrición:", err);
     }
     setLoading(false);
+  };
+
+  // Save the calculated plan into MongoDB
+  const handleSaveToDB = async () => {
+    if (!nutritionPlan) {
+      alert("First calculate the plan, then click Save.");
+      return;
+    }
+
+    const payload = {
+      gender: settings.gender,
+      age: Number(settings.age),
+      height: Number(settings.height),
+      weight: Number(settings.weight),
+      trainsPerWeek: Number(settings.trainsPerWeek || 0),
+      activity: settings.activity,
+      goal: settings.goal,
+      // results from calculate-nutrition
+      calories: nutritionPlan.calories,
+      protein: nutritionPlan.protein,
+      fat: nutritionPlan.fat,
+      carbs: nutritionPlan.carbs,
+      // optional
+      note: "",
+      date: new Date().toISOString(),
+    };
+
+    try {
+      const res = await fetch("http://localhost:5000/save-nutrition", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("Save error:", data);
+        alert("Error saving plan: " + (data.error || "unknown"));
+        return;
+      }
+
+      console.log("Saved:", data.data);
+      alert("Plan saved ✅");
+    } catch (err) {
+      console.error("Save failed:", err);
+      alert("Save failed");
+    }
   };
 
   return (
@@ -99,8 +147,14 @@ function Settings({ settings, handleSettingsChange }) {
         </label>
       </form>
 
+      {/* First calculate */}
       <button onClick={handleSave} disabled={loading}>
-        {loading ? "Calculando..." : "Guardar"}
+        {loading ? "Calculando..." : "Calcular"}
+      </button>
+
+      {/* Then save to DB */}
+      <button onClick={handleSaveToDB} disabled={!nutritionPlan}>
+        Guardar en DB
       </button>
 
       {nutritionPlan && (
