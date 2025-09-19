@@ -74,11 +74,13 @@ function App() {
 
       {/* Upload button */}
       <input
+        id="fileUpload"
         type="file"
         accept="image/*"
-        capture="environment" // 📱 allows camera on mobile
+        capture="environment"
         onChange={handleFileChange}
       />
+      <label htmlFor="fileUpload">📷 Subir o tomar foto</label>
 
       {loading && <p className="loading">Analizando imagen...</p>}
 
