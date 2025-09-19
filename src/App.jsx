@@ -1,234 +1,156 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Swal from "sweetalert2";
 import "./App.css";
 
 function App() {
   const [image, setImage] = useState(null);
-  const [nutrition, setNutrition] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef(null);
+  const [registeredFoods, setRegisteredFoods] = useState([]);
 
-  // 📌 Call backend for image analysis
-  const processImage = async (file) => {
-    setLoading(true);
-    setNutrition(null);
+  // Upload image to backend
+  const handleUpload = async (file) => {
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
+    setResult(null);
+
+    const formData = new FormData();
+    formData.append("image", file);
 
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const response = await fetch("http://localhost:5000/check-food", {
+      setLoading(true);
+      const res = await fetch("http://localhost:5000/check-food", {
         method: "POST",
         body: formData,
       });
 
-      const data = await response.json();
+      const data = await res.json();
+      setLoading(false);
 
       if (data.result === "Imagen no contiene comida") {
-        Swal.fire("Info 🍽️", "Imagen no contiene comida", "info");
-      } else {
-        try {
-          const parsed = JSON.parse(data.result);
-          setNutrition(parsed);
-        } catch {
-          Swal.fire("Error 😢", "Invalid AI response", "error");
-        }
+        Swal.fire("Ups!", "La imagen no contiene comida", "warning");
+        return;
       }
-    } catch (error) {
-      Swal.fire("Error 😢", "Something went wrong", "error");
-    } finally {
-      setLoading(false);
-    }
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      let parsed;
+      try {
+        parsed = JSON.parse(data.result); // Ensure JSON
+      } catch {
+        Swal.fire("Error", "Respuesta inválida del servidor", "error");
+        return;
+      }
+
+      setResult(parsed);
+
+      // Confirm popup
+      Swal.fire({
+        title: "Registrar comida",
+        text: "¿Quieres registrar esta comida?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Si",
+        cancelButtonText: "No",
+      }).then((res) => {
+        if (res.isConfirmed) {
+          setRegisteredFoods((prev) => [...prev, parsed]);
+          Swal.fire("Registrado ✅", "La comida fue registrada", "success");
+        }
+      });
+    } catch (err) {
+      setLoading(false);
+      Swal.fire("Error", "No se pudo procesar la imagen", "error");
     }
   };
 
-  // 📌 Handle file upload
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setImage(URL.createObjectURL(file));
-      processImage(file);
-    }
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) handleUpload(file);
   };
 
   return (
-    <div className="app-container">
-      <h1 className="title">🍽️ Food Analyzer AI</h1>
+    <div className="container">
+      <h1 className="title">Food Analyzer 🍽️</h1>
 
-      {/* Upload input */}
-      <div className="upload-box">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          ref={fileInputRef}
-          className="file-input"
-        />
+      {/* Upload button */}
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment" // 📱 allows camera on mobile
+        onChange={handleFileChange}
+      />
+
+      {loading && <p className="loading">Analizando imagen...</p>}
+
+      <div className="content">
+        {/* Left: Preview */}
+        {preview && (
+          <div className="preview">
+            <h3>Imagen</h3>
+            <img src={preview} alt="preview" />
+          </div>
+        )}
+
+        {/* Right: Result Table */}
+        {result && (
+          <div className="result">
+            <h3>Resultado</h3>
+            <table>
+              <tbody>
+                <tr>
+                  <td>Calorías</td>
+                  <td>{result.Calories}</td>
+                </tr>
+                <tr>
+                  <td>Proteína</td>
+                  <td>{result.Protein}</td>
+                </tr>
+                <tr>
+                  <td>Grasas</td>
+                  <td>{result.Fat}</td>
+                </tr>
+                <tr>
+                  <td>Carbohidratos</td>
+                  <td>{result.Carbohydrates}</td>
+                </tr>
+                <tr>
+                  <td>Saludable</td>
+                  <td>{result.Healthiness}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Loader */}
-      {loading && (
-        <div className="loader-container">
-          <div className="loader"></div>
-          <p>Analyzing image...</p>
+      {/* Registered foods table */}
+      {registeredFoods.length > 0 && (
+        <div className="registered">
+          <h2>Comidas Registradas 📋</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Calorías</th>
+                <th>Proteína</th>
+                <th>Grasas</th>
+                <th>Carbohidratos</th>
+                <th>Saludable</th>
+              </tr>
+            </thead>
+            <tbody>
+              {registeredFoods.map((food, i) => (
+                <tr key={i}>
+                  <td>{food.Calories}</td>
+                  <td>{food.Protein}</td>
+                  <td>{food.Fat}</td>
+                  <td>{food.Carbohydrates}</td>
+                  <td>{food.Healthiness}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
-
-      {/* Two-column layout */}
-      {!loading && (image || nutrition) && (
-        <div className="results-container">
-          {/* Left: Image */}
-          {image && (
-            <div className="image-card">
-              <h3>Preview</h3>
-              <img src={image} alt="Preview" className="preview-img" />
-            </div>
-          )}
-
-          {/* Right: Table */}
-          {nutrition && (
-            <div className="table-card">
-              <h2>Nutrition Facts 🍏</h2>
-              <table className="nutrition-table">
-                <thead>
-                  <tr>
-                    <th>Nutrient</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Calories</td>
-                    <td>{nutrition.Calories}</td>
-                  </tr>
-                  <tr>
-                    <td>Protein</td>
-                    <td>{nutrition.Protein}</td>
-                  </tr>
-                  <tr>
-                    <td>Fat</td>
-                    <td>{nutrition.Fat}</td>
-                  </tr>
-                  <tr>
-                    <td>Carbohydrates</td>
-                    <td>{nutrition.Carbohydrates}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ fontWeight: "bold" }}>Healthiness</td>
-                    <td
-                      style={{
-                        fontWeight: "bold",
-                        color:
-                          nutrition.Healthiness === "Healthy"
-                            ? "green"
-                            : "red",
-                      }}
-                    >
-                      {nutrition.Healthiness}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Spinner Animation CSS */}
-      <style>
-        {`
-          .app-container {
-            text-align: center;
-            padding: 2rem;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f9f9f9;
-            min-height: 100vh;
-          }
-
-          .title {
-            color: #333;
-            margin-bottom: 1rem;
-          }
-
-          .upload-box {
-            margin-bottom: 2rem;
-          }
-
-          .file-input {
-            padding: 10px;
-            border: 2px dashed #4CAF50;
-            border-radius: 8px;
-            cursor: pointer;
-            background: white;
-          }
-
-          .loader-container {
-            margin-top: 2rem;
-          }
-
-          .loader {
-            border: 6px solid #f3f3f3;
-            border-top: 6px solid #4CAF50;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            margin: auto;
-            animation: spin 1s linear infinite;
-          }
-
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-
-          .results-container {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-          }
-
-          .image-card, .table-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-            flex: 1;
-            min-width: 300px;
-          }
-
-          .preview-img {
-            max-width: 100%;
-            border-radius: 10px;
-            margin-top: 1rem;
-          }
-
-          .nutrition-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-          }
-
-          .nutrition-table th {
-            background: #4CAF50;
-            color: white;
-            padding: 12px;
-          }
-
-          .nutrition-table td {
-            border-bottom: 1px solid #ddd;
-            padding: 12px;
-          }
-
-          .nutrition-table tr:hover {
-            background: #f1f1f1;
-          }
-        `}
-      </style>
     </div>
   );
 }
