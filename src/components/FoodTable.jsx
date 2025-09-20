@@ -1,15 +1,15 @@
 function FoodTable({ foods = [], nutritionPlan }) {
   // Calculate totals eaten today
   const totals = foods.reduce(
-    (acc, food) => {
-      acc.calories += Number(food.Calories) || 0;
-      acc.protein += Number(food.Protein) || 0;
-      acc.fat += Number(food.Fat) || 0;
-      acc.carbs += Number(food.Carbohydrates) || 0;
-      return acc;
-    },
-    { calories: 0, protein: 0, fat: 0, carbs: 0 }
-  );
+  (acc, food) => {
+    acc.calories += Number(food.Calories ?? food.calories ?? 0);
+    acc.protein += Number(food.Protein ?? food.protein ?? 0);
+    acc.fat += Number(food.Fat ?? food.fat ?? 0);
+    acc.carbs += Number(food.Carbohydrates ?? food.carbohydrates ?? 0);
+    return acc;
+  },
+  { calories: 0, protein: 0, fat: 0, carbs: 0 }
+);
 
   return (
     <table>

@@ -3,8 +3,14 @@ import FoodTable from "../components/FoodTable";
 
 function DailyLog({ registeredFoods }) {
   const [nutritionPlan, setNutritionPlan] = useState(null);
+  const [foods, setFoods] = useState(registeredFoods || []);
 
-  // Fetch latest nutrition plan from backend on mount
+  // Sync foods if parent prop changes
+  useEffect(() => {
+    setFoods(registeredFoods || []);
+  }, [registeredFoods]);
+
+  // Fetch latest nutrition plan
   useEffect(() => {
     const fetchNutrition = async () => {
       try {
@@ -30,7 +36,7 @@ function DailyLog({ registeredFoods }) {
   return (
     <div className="registered">
       <h2>Comidas Registradas 📋</h2>
-      <FoodTable foods={registeredFoods} nutritionPlan={nutritionPlan} />
+      <FoodTable foods={foods} nutritionPlan={nutritionPlan} />
     </div>
   );
 }
